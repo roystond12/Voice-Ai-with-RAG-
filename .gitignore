@@ -1,0 +1,14 @@
+# environments
+.venv/
+.env
+
+# python
+__pycache__/
+*.pyc
+
+# vector db storage (embedded qdrant data, regenerated locally)
+qdrant_db/
+qdrant_db1/
+
+# streamlit
+.streamlit/
