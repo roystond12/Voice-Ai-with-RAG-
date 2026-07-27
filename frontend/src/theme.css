@@ -1,0 +1,59 @@
+/* Change the overall look of the app from right here. */
+:root {
+  --bg: #0a0906;
+  --bg-elevated: #141210;
+  --panel: #1a1712;
+  --panel-hover: #221e17;
+  --border: #2c2620;
+
+  --gold: #e8b84b;
+  --gold-bright: #ffd873;
+  --gold-dim: #9c7f3d;
+  --amber-glow: #ffb545;
+
+  --text: #f5f0e6;
+  --text-dim: #a89f8e;
+  --text-faint: #6b6355;
+
+  --danger: #e05656;
+
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  --font: "Segoe UI", Inter, system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font);
+  background:
+    radial-gradient(1200px 700px at 15% -10%, rgba(232, 184, 75, 0.10) 0%, transparent 60%),
+    radial-gradient(900px 600px at 100% 0%, rgba(255, 216, 115, 0.06) 0%, transparent 55%),
+    var(--bg);
+  color: var(--text);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 8px;
+}
