@@ -1,22 +1,23 @@
 from fastapi import APIRouter,Request,HTTPException,status,Response
 import os
-import secrets
-import time
-from dotenv import load_dotenv
-from deepgram import DeepgramClient
+import re
 import logging
 from typing import Annotated
-import sys
 
+from dotenv import load_dotenv
+from deepgram import DeepgramClient
+from starlette.concurrency import run_in_threadpool
+
+logger = logging.getLogger(__name__)
 
 def validate_api_key()->str:
     api_key:str = os.environ.get("DEEPGRAM_API_KEY",None)
     if not api_key:
         logging.error("""
                       DeepGram API Key is not provided
-                      Please Ensure this things are followed 
+                      Please Ensure this things are followed
                       1. Create a .venv file
-                      2. Assgin the parameters like this 
+                      2. Assgin the parameters like this
                           (DEEPGRAM_API_KEY="<deep_gram_api_key>")""")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -37,6 +38,36 @@ models_list = [
     "aura-2-thalia-en"
 ]
 
+# Reused across requests instead of instantiated per-call — cuts connection
+# setup overhead on every synthesis.
+deepgram_client = DeepgramClient(api_key=deepgram_api_key)
+
+
+def _normalize_text_for_speech(text: str) -> str:
+    """Missing punctuation/stray markdown is a common cause of flat, rushed
+    TTS prosody, so clean the text up before sending it to Deepgram."""
+    cleaned = re.sub(r"[*_`#]+", "", text).strip()
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    if cleaned and cleaned[-1] not in ".!?":
+        cleaned += "."
+    return cleaned
+
+
+def _generate_speech(text: str, model: str) -> bytes:
+    """Blocking Deepgram call, meant to run in a worker thread so it doesn't
+    block the event loop."""
+    audio_generator = deepgram_client.speak.v1.audio.generate(
+        text=_normalize_text_for_speech(text),
+        model=model,
+        # Deepgram defaults to a lower-fidelity compressed format when these
+        # aren't specified; explicit high-quality PCM WAV is the single
+        # biggest quality lever available without changing voices.
+        encoding="linear16",
+        sample_rate=48000,
+        container="wav",
+    )
+    return b"".join(audio_generator)
+
 # @tts_router.get("/")
 # def hello():
 #     return "hii"
@@ -47,56 +78,48 @@ async def text_to_speech(
     model:Annotated[str,"Defualt Model"] = defualt_model,
     ):
     """
-    Input -> Receives text input (str) in json body 
+    Input -> Receives text input (str) in json body
     Output -> Converts str to audio bytes
     This API is used for text to speech conversion
     """
     try:
         if model not in models_list:
-            logging.error(f"""
+            logger.error(f"""
                         Select Models from the list : {"\n".join(name for name in models_list)}
                         """)
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail="please select proper models"
             )
-            
+
         if request.headers.get("content-type","") != "application/json":
-            logging.error("please provide json body")
+            logger.error("please provide json body")
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail = "please provide the json body"
             )
-            
+
         body = await request.json()
         text = body.get("text","").strip()
-        
+
         if not text:
-            logging.error("the text cannot be empty") 
+            logger.error("the text cannot be empty")
             raise HTTPException(
-                        status_code=status.HTTP_204_NO_CONTENT,
+                        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                         detail = "please provide the text"
                     )
-        client = DeepgramClient(api_key = deepgram_api_key)
-        audio_generator = client.speak.v1.audio.generate(
-            text = text,
-            model = model
-        )
-        
-        audio_bytes = b''.join(audio_generator)
-        
+
+        audio_bytes = await run_in_threadpool(_generate_speech, text, model)
+
         return Response(
             content = audio_bytes,
-            media_type="application/octet-stream"
+            media_type="audio/wav"
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        logging.error(e)
-        HTTPException(
-            status_code = status.HTTP_400_BAD_REQUEST,
-            detail="Bad Request"
+        logger.error(e)
+        raise HTTPException(
+            status_code = status.HTTP_502_BAD_GATEWAY,
+            detail="Text-to-speech generation failed"
         )
-        
-
-        
-        
-

@@ -1,9 +1,10 @@
+import json
 import torch
 from transformers import AutoTokenizer,AutoModelForCausalLM
 import config
 from sentence_transformers import SentenceTransformer, CrossEncoder
-from qdrant_client import QdrantClient
-from qdrant_client.models import Distance,VectorParams
+import chromadb
+from chromadb.api.models.Collection import Collection
 
 def get_generation_model():
     tokenizer = AutoTokenizer.from_pretrained(config.GENERATION_MODEL)
@@ -63,53 +64,53 @@ def get_embedding_model() -> SentenceTransformer:
 def get_rerank_model() -> CrossEncoder:
     return CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 
-def get_qdrant_client(reset: bool = True) -> QdrantClient:
-    client = QdrantClient(path=config.QDRANT_PATH)
-    if client.collection_exists(config.COLLECTION_NAME):
-        existing_dim = client.get_collection(config.COLLECTION_NAME).config.params.vectors.size
-        if reset or existing_dim != config.EMBEDDING_DIM:
-            client.delete_collection(config.COLLECTION_NAME)
-    if not client.collection_exists(config.COLLECTION_NAME):
-        client.create_collection(
-            collection_name=config.COLLECTION_NAME,
-            vectors_config=VectorParams(size=config.EMBEDDING_DIM, distance=Distance.COSINE),
-        )
-    return client
+def get_chroma_client() -> chromadb.HttpClient:
+    """Connects to a Chroma *server* (see docker-compose.yml / `chroma run`),
+    never an embedded/local-mode client — that would only allow one process
+    to hold the store at a time, blocking multi-worker deployment."""
+    return chromadb.HttpClient(host=config.CHROMA_HOST, port=config.CHROMA_PORT)
 
 
-def get_all_chunks(client: QdrantClient) -> list[dict]:
-    """Every chunk currently indexed in Qdrant (the actual source of truth
-    for retrieve())."""
-    points, _ = client.scroll(
-        collection_name=config.COLLECTION_NAME,
-        limit=client.count(collection_name=config.COLLECTION_NAME).count,
-        with_payload=True,
-        with_vectors=False,
+def get_or_create_collection(client: chromadb.HttpClient) -> Collection:
+    """Never resets/deletes an existing collection implicitly — a prior bug
+    here wiped the vector store on every backend restart. Resets only ever
+    happen via an explicit, separate migration/ingestion script."""
+    return client.get_or_create_collection(
+        name=config.CHROMA_COLLECTION_NAME,
+        metadata={"hnsw:space": "cosine"},
     )
-    return [point.payload for point in points]
+
+
+def get_all_chunks(collection: Collection) -> list[dict]:
+    """Every chunk currently indexed in Chroma (the actual source of truth
+    for retrieve())."""
+    result = collection.get(include=["metadatas"])
+    return [json.loads(metadata["chunk_json"]) for metadata in result["metadatas"]]
 
 def retrieve(
     query: str,
     embedding_model: SentenceTransformer,
     re_rank_model: CrossEncoder,
-    client: QdrantClient,
+    collection: Collection,
     top_k: int = config.TOP_K,
     rerank_candidates: int = 10,
 ) -> list[tuple[float, dict]]:
     query_vector = embedding_model.encode(config.PREFIX + query, normalize_embeddings=True).tolist()
-    results = client.query_points(
-        collection_name=config.COLLECTION_NAME,
-        query=query_vector,
-        limit=rerank_candidates,
+    results = collection.query(
+        query_embeddings=[query_vector],
+        n_results=rerank_candidates,
+        include=["metadatas"],
     )
+    metadatas = results["metadatas"][0] if results["metadatas"] else []
+    payloads = [json.loads(metadata["chunk_json"]) for metadata in metadatas]
 
-    pairs = [(query, chunk_to_text(hit.payload)) for hit in results.points]
+    pairs = [(query, chunk_to_text(payload)) for payload in payloads]
     if not pairs:
         return []
     rerank_scores = re_rank_model.predict(pairs)
 
     reranked = sorted(
-        zip(rerank_scores, (hit.payload for hit in results.points)),
+        zip(rerank_scores, payloads),
         key=lambda pair: pair[0],
         reverse=True,
     )

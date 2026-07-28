@@ -1,14 +1,20 @@
 # environments
 .venv/
 .env
+frontend/.env.local
 
 # python
 __pycache__/
 *.pyc
 
-# vector db storage (embedded qdrant data, regenerated locally)
+# vector db storage (regenerated locally / by the vector store server)
 qdrant_db/
 qdrant_db1/
+chroma_db/
 
-# streamlit
+# node / frontend
+frontend/node_modules/
+frontend/dist/
+
+# streamlit (legacy, no longer used)
 .streamlit/

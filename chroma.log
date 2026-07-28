@@ -1,0 +1,93 @@
+WARNING:  [27-07-2026 15:47:45] chroma_server_nofile is set to 65535, but this is less than current soft limit of 1048576. chroma_server_nofile will not be set.
+INFO:     [27-07-2026 15:47:46] Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+DEBUG:    [27-07-2026 15:47:46] Starting component System
+DEBUG:    [27-07-2026 15:47:46] Starting component OpenTelemetryClient
+DEBUG:    [27-07-2026 15:47:46] Starting component SqliteDB
+DEBUG:    [27-07-2026 15:47:46] Starting component SimpleQuotaEnforcer
+DEBUG:    [27-07-2026 15:47:46] Starting component Posthog
+DEBUG:    [27-07-2026 15:47:46] Starting component SimpleRateLimitEnforcer
+DEBUG:    [27-07-2026 15:47:46] Starting component LocalSegmentManager
+DEBUG:    [27-07-2026 15:47:46] Starting component LocalExecutor
+DEBUG:    [27-07-2026 15:47:46] Starting component SegmentAPI
+DEBUG:    [27-07-2026 15:47:46] Starting component SimpleAsyncRateLimitEnforcer
+ERROR:    [27-07-2026 15:47:46] Failed to send telemetry event ServerStartEvent: capture() takes 1 positional argument but 3 were given
+INFO:     [27-07-2026 15:47:46] Started server process [40219]
+INFO:     [27-07-2026 15:47:46] Waiting for application startup.
+INFO:     [27-07-2026 15:47:46] Application startup complete.
+INFO:     [27-07-2026 15:47:46] Uvicorn running on http://0.0.0.0:8100 (Press CTRL+C to quit)
+INFO:     [27-07-2026 15:47:50] 127.0.0.1:39730 - "GET /api/v2/heartbeat HTTP/1.1" 200
+INFO:     [27-07-2026 15:49:08] 127.0.0.1:47672 - "GET /api/v2/heartbeat HTTP/1.1" 200
+INFO:     [27-07-2026 15:49:39] 127.0.0.1:50446 - "GET /api/v2/auth/identity HTTP/1.1" 200
+INFO:     [27-07-2026 15:49:39] 127.0.0.1:50462 - "GET /api/v2/tenants/default_tenant HTTP/1.1" 200
+INFO:     [27-07-2026 15:49:39] 127.0.0.1:50462 - "GET /api/v2/tenants/default_tenant/databases/default_database HTTP/1.1" 200
+ERROR:    [27-07-2026 15:49:39] Failed to send telemetry event ClientCreateCollectionEvent: capture() takes 1 positional argument but 3 were given
+INFO:     [27-07-2026 15:49:39] 127.0.0.1:50446 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections HTTP/1.1" 200
+ERROR:    [27-07-2026 15:49:58] Failed to send telemetry event CollectionQueryEvent: capture() takes 1 positional argument but 3 were given
+DEBUG:    [27-07-2026 15:49:58] Starting component PersistentLocalHnswSegment
+INFO:     [27-07-2026 15:49:58] 127.0.0.1:42264 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections/1881a8e3-9fc5-4003-a927-db0303016254/query HTTP/1.1" 200
+INFO:     [27-07-2026 15:53:23] 127.0.0.1:37022 - "GET /api/v2/auth/identity HTTP/1.1" 200
+INFO:     [27-07-2026 15:53:23] 127.0.0.1:37030 - "GET /api/v2/tenants/default_tenant HTTP/1.1" 200
+INFO:     [27-07-2026 15:53:23] 127.0.0.1:37030 - "GET /api/v2/tenants/default_tenant/databases/default_database HTTP/1.1" 200
+DEBUG:    [27-07-2026 15:53:23] Collection vectorDB already exists, returning existing collection.
+ERROR:    [27-07-2026 15:53:23] Failed to send telemetry event ClientCreateCollectionEvent: capture() takes 1 positional argument but 3 were given
+INFO:     [27-07-2026 15:53:23] 127.0.0.1:37022 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections HTTP/1.1" 200
+INFO:     [27-07-2026 16:03:31] 127.0.0.1:53620 - "GET /api/v2/auth/identity HTTP/1.1" 200
+INFO:     [27-07-2026 16:03:31] 127.0.0.1:53632 - "GET /api/v2/tenants/default_tenant HTTP/1.1" 200
+INFO:     [27-07-2026 16:03:31] 127.0.0.1:53632 - "GET /api/v2/tenants/default_tenant/databases/default_database HTTP/1.1" 200
+DEBUG:    [27-07-2026 16:03:31] Collection vectorDB already exists, returning existing collection.
+ERROR:    [27-07-2026 16:03:31] Failed to send telemetry event ClientCreateCollectionEvent: capture() takes 1 positional argument but 3 were given
+INFO:     [27-07-2026 16:03:31] 127.0.0.1:53620 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections HTTP/1.1" 200
+INFO:     [27-07-2026 16:03:49] 127.0.0.1:57906 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections/1881a8e3-9fc5-4003-a927-db0303016254/query HTTP/1.1" 200
+INFO:     [27-07-2026 16:05:50] 127.0.0.1:42368 - "GET /api/v2/auth/identity HTTP/1.1" 200
+INFO:     [27-07-2026 16:05:50] 127.0.0.1:42370 - "GET /api/v2/tenants/default_tenant HTTP/1.1" 200
+INFO:     [27-07-2026 16:05:50] 127.0.0.1:42370 - "GET /api/v2/tenants/default_tenant/databases/default_database HTTP/1.1" 200
+DEBUG:    [27-07-2026 16:05:50] Collection vectorDB already exists, returning existing collection.
+ERROR:    [27-07-2026 16:05:50] Failed to send telemetry event ClientCreateCollectionEvent: capture() takes 1 positional argument but 3 were given
+INFO:     [27-07-2026 16:05:50] 127.0.0.1:42368 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections HTTP/1.1" 200
+INFO:     [27-07-2026 16:06:08] 127.0.0.1:39472 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections/1881a8e3-9fc5-4003-a927-db0303016254/query HTTP/1.1" 200
+INFO:     [27-07-2026 16:10:52] 127.0.0.1:39088 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections/1881a8e3-9fc5-4003-a927-db0303016254/query HTTP/1.1" 200
+INFO:     [27-07-2026 16:10:55] 127.0.0.1:39088 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections/1881a8e3-9fc5-4003-a927-db0303016254/query HTTP/1.1" 200
+INFO:     [27-07-2026 16:11:14] 127.0.0.1:45948 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections/1881a8e3-9fc5-4003-a927-db0303016254/query HTTP/1.1" 200
+INFO:     [27-07-2026 16:11:25] 127.0.0.1:45970 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections/1881a8e3-9fc5-4003-a927-db0303016254/query HTTP/1.1" 200
+INFO:     [27-07-2026 16:11:32] 127.0.0.1:49988 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections/1881a8e3-9fc5-4003-a927-db0303016254/query HTTP/1.1" 200
+INFO:     [27-07-2026 16:16:37] Shutting down
+INFO:     [27-07-2026 16:16:38] Waiting for application shutdown.
+DEBUG:    [27-07-2026 16:16:38] Stopping component System
+DEBUG:    [27-07-2026 16:16:38] Stopping component SegmentAPI
+DEBUG:    [27-07-2026 16:16:38] Stopping component LocalExecutor
+DEBUG:    [27-07-2026 16:16:38] Stopping component PersistentLocalHnswSegment
+DEBUG:    [27-07-2026 16:16:38] Stopping component LocalSegmentManager
+DEBUG:    [27-07-2026 16:16:38] Stopping component SimpleAsyncRateLimitEnforcer
+DEBUG:    [27-07-2026 16:16:38] Stopping component SimpleRateLimitEnforcer
+DEBUG:    [27-07-2026 16:16:38] Stopping component Posthog
+DEBUG:    [27-07-2026 16:16:38] Stopping component SimpleQuotaEnforcer
+DEBUG:    [27-07-2026 16:16:38] Stopping component SqliteDB
+DEBUG:    [27-07-2026 16:16:38] Stopping component OpenTelemetryClient
+INFO:     [27-07-2026 16:16:38] Application shutdown complete.
+INFO:     [27-07-2026 16:16:38] Finished server process [40219]
+[33mWARNING[0m:  [27-07-2026 16:19:14] chroma_server_nofile is set to 65535, but this is less than current soft limit of 1048576. chroma_server_nofile will not be set.
+[32mINFO[0m:     [27-07-2026 16:19:14] Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+[36mDEBUG[0m:    [27-07-2026 16:19:14] Starting component System
+[36mDEBUG[0m:    [27-07-2026 16:19:14] Starting component OpenTelemetryClient
+[36mDEBUG[0m:    [27-07-2026 16:19:14] Starting component SqliteDB
+[36mDEBUG[0m:    [27-07-2026 16:19:14] Starting component SimpleQuotaEnforcer
+[36mDEBUG[0m:    [27-07-2026 16:19:14] Starting component Posthog
+[36mDEBUG[0m:    [27-07-2026 16:19:14] Starting component SimpleRateLimitEnforcer
+[36mDEBUG[0m:    [27-07-2026 16:19:14] Starting component LocalSegmentManager
+[36mDEBUG[0m:    [27-07-2026 16:19:14] Starting component LocalExecutor
+[36mDEBUG[0m:    [27-07-2026 16:19:14] Starting component SegmentAPI
+[36mDEBUG[0m:    [27-07-2026 16:19:14] Starting component SimpleAsyncRateLimitEnforcer
+[31mERROR[0m:    [27-07-2026 16:19:14] Failed to send telemetry event ServerStartEvent: capture() takes 1 positional argument but 3 were given
+[32mINFO[0m:     [27-07-2026 16:19:14] Started server process [[36m45245[0m]
+[32mINFO[0m:     [27-07-2026 16:19:14] Waiting for application startup.
+[32mINFO[0m:     [27-07-2026 16:19:14] Application startup complete.
+[32mINFO[0m:     [27-07-2026 16:19:14] Uvicorn running on [1mhttp://0.0.0.0:8100[0m (Press CTRL+C to quit)
+[32mINFO[0m:     [27-07-2026 16:20:05] 127.0.0.1:46064 - "GET /api/v2/auth/identity HTTP/1.1" 200
+[32mINFO[0m:     [27-07-2026 16:20:05] 127.0.0.1:46068 - "GET /api/v2/tenants/default_tenant HTTP/1.1" 200
+[32mINFO[0m:     [27-07-2026 16:20:05] 127.0.0.1:46068 - "GET /api/v2/tenants/default_tenant/databases/default_database HTTP/1.1" 200
+[36mDEBUG[0m:    [27-07-2026 16:20:05] Collection vectorDB already exists, returning existing collection.
+[31mERROR[0m:    [27-07-2026 16:20:05] Failed to send telemetry event ClientCreateCollectionEvent: capture() takes 1 positional argument but 3 were given
+[32mINFO[0m:     [27-07-2026 16:20:05] 127.0.0.1:46064 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections HTTP/1.1" 200
+[31mERROR[0m:    [27-07-2026 16:22:05] Failed to send telemetry event CollectionQueryEvent: capture() takes 1 positional argument but 3 were given
+[36mDEBUG[0m:    [27-07-2026 16:22:05] Starting component PersistentLocalHnswSegment
+[32mINFO[0m:     [27-07-2026 16:22:05] 127.0.0.1:60870 - "POST /api/v2/tenants/default_tenant/databases/default_database/collections/1881a8e3-9fc5-4003-a927-db0303016254/query HTTP/1.1" 200

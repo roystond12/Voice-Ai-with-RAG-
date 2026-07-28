@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+qdrant_db/
+qdrant_db1/
+chroma_db/
+.git/
+node_modules/
+frontend/dist/
+frontend/node_modules/
