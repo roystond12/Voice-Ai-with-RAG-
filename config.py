@@ -1,4 +1,6 @@
 import os
+import re
+
 
 PROMPT = (
     "You are a helpful assistant. Answer the user's question using ONLY the "
@@ -40,3 +42,12 @@ MAX_NEW_TOKENS = 300
 MAX_CONCURRENT_GENERATIONS = int(os.environ.get("MAX_CONCURRENT_GENERATIONS", os.cpu_count() or 2))
 QUERY_CACHE_TTL_SECONDS = int(os.environ.get("QUERY_CACHE_TTL_SECONDS", 600))
 QUERY_CACHE_MAX_SIZE = int(os.environ.get("QUERY_CACHE_MAX_SIZE", 256))
+
+HEADING_LABELS = {"section_header", "title"}
+
+NUMBERED_HEADING_PATTERN = re.compile(r"^\d{1,2}[.)]\s+\S")
+NUMBERED_HEADING_MAX_LEN = 80
+
+ALLOWED_FILE_TYPES = ["image/jpg","image/jpeg","image/png","image/webp","application/pdf","application/vnd.openxmlformats-officedocument.wordprocessingml.document"]
+
+STORAGE_FOLDER = "storage"
