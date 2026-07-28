@@ -1,10 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+const BAR_COUNT = 28;
+
+function downsample(freqData, barCount) {
+  const bars = new Array(barCount);
+  const step = Math.floor(freqData.length / barCount) || 1;
+  for (let i = 0; i < barCount; i++) {
+    bars[i] = freqData[i * step] / 255;
+  }
+  return bars;
+}
+
 /**
  * Plays a Blob of audio through an <audio> element and exposes live
- * amplitude (for the talking face / glow ring) plus playback progress
- * (for word-by-word transcript highlighting), all driven by the actual
- * audio — not a fake timer.
+ * amplitude/per-bar frequency data (for the talking face, glow ring, and
+ * waveform) plus playback progress (for word-by-word transcript
+ * highlighting), all driven by the actual audio — not a fake animation.
  */
 export function useAudioPlayback() {
   const audioRef = useRef(null);
@@ -16,6 +27,7 @@ export function useAudioPlayback() {
 
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [level, setLevel] = useState(0); // 0..1 smoothed amplitude
+  const [bars, setBars] = useState(() => new Array(BAR_COUNT).fill(0));
   const [progress, setProgress] = useState(0); // 0..1
 
   const ensureGraph = useCallback(() => {
@@ -50,6 +62,7 @@ export function useAudioPlayback() {
     let sum = 0;
     for (let i = 0; i < data.length; i++) sum += data[i];
     setLevel(sum / data.length / 255);
+    setBars(downsample(data, BAR_COUNT));
   }, []);
 
   const play = useCallback(
@@ -68,6 +81,7 @@ export function useAudioPlayback() {
       audio.onended = () => {
         setIsSpeaking(false);
         setLevel(0);
+        setBars(new Array(BAR_COUNT).fill(0));
         setProgress(1);
       };
       audio.onpause = () => setIsSpeaking(false);
@@ -82,6 +96,13 @@ export function useAudioPlayback() {
     if (audioRef.current) {
       audioRef.current.pause();
     }
+  }, []);
+
+  const replay = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.currentTime = 0;
+    await audio.play();
   }, []);
 
   const seekToFraction = useCallback((fraction) => {
@@ -99,5 +120,5 @@ export function useAudioPlayback() {
     };
   }, []);
 
-  return { play, stop, seekToFraction, isSpeaking, level, progress };
+  return { play, stop, replay, seekToFraction, isSpeaking, level, bars, progress };
 }

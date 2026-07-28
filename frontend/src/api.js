@@ -24,8 +24,10 @@ export async function getContext(query) {
   return res.json();
 }
 
-export async function textToSpeech(text) {
-  const res = await fetch(`${API_BASE_URL}/api/text_to_speech`, {
+export async function textToSpeech(text, voice) {
+  const url = new URL(`${API_BASE_URL}/api/text_to_speech`);
+  if (voice) url.searchParams.set("model", voice);
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ text }),

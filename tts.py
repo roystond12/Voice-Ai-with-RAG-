@@ -35,17 +35,20 @@ config = {
 }
 deepgram_api_key:str = validate_api_key()
 models_list = [
-    "aura-2-thalia-en"
+    "aura-2-thalia-en",
+    "aura-2-asteria-en",
+    "aura-2-luna-en",
+    "aura-2-orion-en",
+    "aura-2-zeus-en",
+    "aura-2-hera-en",
+    "aura-2-apollo-en",
+    "aura-2-arcas-en",
 ]
 
-# Reused across requests instead of instantiated per-call — cuts connection
-# setup overhead on every synthesis.
 deepgram_client = DeepgramClient(api_key=deepgram_api_key)
 
 
 def _normalize_text_for_speech(text: str) -> str:
-    """Missing punctuation/stray markdown is a common cause of flat, rushed
-    TTS prosody, so clean the text up before sending it to Deepgram."""
     cleaned = re.sub(r"[*_`#]+", "", text).strip()
     cleaned = re.sub(r"\s+", " ", cleaned)
     if cleaned and cleaned[-1] not in ".!?":
@@ -54,14 +57,9 @@ def _normalize_text_for_speech(text: str) -> str:
 
 
 def _generate_speech(text: str, model: str) -> bytes:
-    """Blocking Deepgram call, meant to run in a worker thread so it doesn't
-    block the event loop."""
     audio_generator = deepgram_client.speak.v1.audio.generate(
         text=_normalize_text_for_speech(text),
         model=model,
-        # Deepgram defaults to a lower-fidelity compressed format when these
-        # aren't specified; explicit high-quality PCM WAV is the single
-        # biggest quality lever available without changing voices.
         encoding="linear16",
         sample_rate=48000,
         container="wav",

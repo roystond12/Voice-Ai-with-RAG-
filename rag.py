@@ -30,6 +30,8 @@ answer_cache: TTLCache = TTLCache(maxsize=config.QUERY_CACHE_MAX_SIZE, ttl=confi
 def _answer_query(query: str) -> str:
     """Blocking retrieval + generation, meant to run in a worker thread."""
     results = rag_functions.retrieve(query, embedding_model, re_rank_model, collection)
+    if not results or results[0][0] <= config.RERANK_SCORE_THRESHOLD:
+        return config.OUT_OF_CONTEXT_MESSAGE
     chunks = [chunk for score, chunk in results]
     return rag_functions.generate_answer(query, chunks, tokenizer, gen_model)
 

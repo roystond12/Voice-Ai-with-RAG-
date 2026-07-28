@@ -2,7 +2,10 @@ import os
 
 PROMPT = (
     "You are a helpful assistant. Answer the user's question using ONLY the "
-    "context below. If the answer isn't in the context, say you don't know. youre strictly prohibited to answer the question outside of context and within the context if the answer doesnt lies strictly you have to say i dont know"
+    "context below. You are strictly prohibited from answering using anything "
+    "outside the context. If the answer to the question is not clearly and "
+    "directly contained in the context, you must reply with EXACTLY this and "
+    "nothing else: Out of context sorry"
 )
 
 GENERATION_MODEL = "HuggingFaceTB/SmolLM2-360M-Instruct"
@@ -11,6 +14,14 @@ EMBEDDING_MODEL_ID = "BAAI/bge-large-en-v1.5"
 PREFIX = "use this context for searching as per the relevancy of the query : "
 
 TOP_K = 3
+
+# cross-encoder/ms-marco-MiniLM-L-6-v2 outputs a raw relevance logit (not a
+# 0-1 probability); scores at/below 0 mean the pair is judged not relevant.
+# Below this, we treat the query as unanswerable from the indexed context and
+# skip generation entirely rather than trust the small instruct model to
+# self-police off-context questions.
+RERANK_SCORE_THRESHOLD = float(os.environ.get("RERANK_SCORE_THRESHOLD", 0.0))
+OUT_OF_CONTEXT_MESSAGE = "Out of context sorry"
 
 # Chroma runs as its own server (see docker-compose.yml) so multiple backend
 # workers can share one vector store safely, unlike embedded/local-mode clients.

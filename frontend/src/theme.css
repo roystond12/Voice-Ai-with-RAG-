@@ -1,25 +1,27 @@
-/* Change the overall look of the app from right here. */
+/* Change the overall look of the app from right here.
+   --accent / --accent-bright / --accent-dim are overridden at runtime by the
+   theme swatches in VoicePanel.jsx (see THEME_OPTIONS in config.js) — change
+   the *default* look by editing these, or add a new swatch in config.js. */
 :root {
-  --bg: #0a0906;
-  --bg-elevated: #141210;
-  --panel: #1a1712;
-  --panel-hover: #221e17;
-  --border: #2c2620;
+  --bg: #0a0a0f;
+  --bg-elevated: #101117;
+  --panel: #15161e;
+  --panel-hover: #1c1e28;
+  --border: #262832;
 
-  --gold: #e8b84b;
-  --gold-bright: #ffd873;
-  --gold-dim: #9c7f3d;
-  --amber-glow: #ffb545;
+  --accent: #6366f1;
+  --accent-bright: #818cf8;
+  --accent-dim: #33366b;
 
-  --text: #f5f0e6;
-  --text-dim: #a89f8e;
-  --text-faint: #6b6355;
+  --text: #eceef2;
+  --text-dim: #9a9dab;
+  --text-faint: #64677a;
 
-  --danger: #e05656;
+  --danger: #ef4444;
 
-  --radius-lg: 20px;
-  --radius-md: 14px;
-  --radius-sm: 10px;
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 9px;
 
   --font: "Segoe UI", Inter, system-ui, -apple-system, sans-serif;
 }
@@ -38,10 +40,10 @@ body,
 body {
   font-family: var(--font);
   background:
-    radial-gradient(1200px 700px at 15% -10%, rgba(232, 184, 75, 0.10) 0%, transparent 60%),
-    radial-gradient(900px 600px at 100% 0%, rgba(255, 216, 115, 0.06) 0%, transparent 55%),
+    radial-gradient(1100px 650px at 12% -10%, color-mix(in srgb, var(--accent) 7%, transparent) 0%, transparent 60%),
     var(--bg);
   color: var(--text);
+  transition: background 0.3s ease;
 }
 
 button {

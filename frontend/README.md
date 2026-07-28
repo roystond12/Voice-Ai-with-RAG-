@@ -5,15 +5,21 @@ Vite + React (plain JS). Talks to the FastAPI backend's three endpoints
 
 ## Where to make common changes
 
-- **Colors / theme** → `src/theme.css` (CSS custom properties at the top).
-- **Capability cards, greeting name, app name** → `src/config.js`.
+- **Default theme colors** → `src/theme.css` (CSS custom properties at the top).
+- **Capability cards, greeting name, app name, voice options, theme swatches,
+  history cap** → `src/config.js`. `VOICE_OPTIONS` must stay in sync with
+  `models_list` in `tts.py` — these are real Deepgram Aura-2 voice ids, not
+  decorative labels.
 - **API calls** → `src/api.js` — the only file that talks to the backend.
 - **Component styling** → `src/app.css`.
-- **Individual pieces of UI** → `src/components/`: `Sidebar.jsx`, `TopBar.jsx`,
-  `TalkingFace.jsx`, `Transcript.jsx`, `InputBar.jsx`, `CapabilityCards.jsx` —
-  one file per concern.
+- **Individual pieces of UI** → `src/components/`: `Sidebar.jsx`, `Header.jsx`,
+  `ConversationCard.jsx`, `VoiceComposer.jsx` (the Speak/Type toggle + mic),
+  `VoicePanel.jsx` (voice + theme selection), `TalkingFace.jsx`,
+  `Transcript.jsx`, `Waveform.jsx`, `CapabilityCards.jsx` — one file per concern.
 - **Mic recording / VAD** → `src/hooks/useVoiceRecorder.js`.
-- **Audio playback / amplitude analysis for the face** → `src/hooks/useAudioPlayback.js`.
+- **Live mic input waveform** → `src/hooks/useMicLevel.js`.
+- **Audio playback / amplitude analysis for the assistant's waveform** →
+  `src/hooks/useAudioPlayback.js`.
 
 ## Running
 

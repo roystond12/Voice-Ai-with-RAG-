@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
  * static swirl graphic. Mouth openness and ring glow are driven by real
  * playback amplitude (level), not a fake animation loop.
  */
-export default function TalkingFace({ isSpeaking, level }) {
+export default function TalkingFace({ isSpeaking, level, size = "lg" }) {
   const mouthRef = useRef(null);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ export default function TalkingFace({ isSpeaking, level }) {
   }, [level]);
 
   return (
-    <div className="talking-face">
+    <div className={`talking-face talking-face--${size}`}>
       <div className={`talking-face__ring ${isSpeaking ? "is-speaking" : ""}`} />
       <div className={`talking-face__core ${isSpeaking ? "is-speaking" : ""}`}>
         <svg viewBox="0 0 100 100">
