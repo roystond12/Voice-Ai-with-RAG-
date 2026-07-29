@@ -7,11 +7,16 @@ import chromadb
 from chromadb.api.models.Collection import Collection
 
 def get_generation_model():
+    # Tried dynamic int8 quantization here for CPU speedup — measured no
+    # real latency win on this model/box, and it degraded output quality
+    # badly (generation collapsed into repeating an unrelated template
+    # phrase instead of answering). Not worth the risk; reverted.
     tokenizer = AutoTokenizer.from_pretrained(config.GENERATION_MODEL)
     model = AutoModelForCausalLM.from_pretrained(config.GENERATION_MODEL)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device)
-    return tokenizer,model
+    model.eval()
+    return tokenizer, model
 
 def chunk_to_text(chunk: dict) -> str:
     parts = []
@@ -62,6 +67,11 @@ def get_embedding_model() -> SentenceTransformer:
     return SentenceTransformer(config.EMBEDDING_MODEL_ID, trust_remote_code=True)
 
 def get_rerank_model() -> CrossEncoder:
+    # Note: dynamic-quantizing this model (like get_generation_model() does)
+    # breaks its forward pass — the BatchEncoding-based calling convention
+    # this BERT model uses doesn't survive being wrapped. Left unquantized;
+    # it's a much smaller model than the generation one and isn't the
+    # latency bottleneck.
     return CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 
 def get_chroma_client() -> chromadb.HttpClient:
@@ -93,7 +103,7 @@ def retrieve(
     re_rank_model: CrossEncoder,
     collection: Collection,
     top_k: int = config.TOP_K,
-    rerank_candidates: int = 10,
+    rerank_candidates: int = 6,
 ) -> list[tuple[float, dict]]:
     query_vector = embedding_model.encode(config.PREFIX + query, normalize_embeddings=True).tolist()
     results = collection.query(

@@ -77,33 +77,41 @@ export default function ConversationCard({
                 <div className="message__bubble">
                   <div className="message__meta">
                     <span>Assistant</span>
-                    <div className="message__actions">
-                      <button
-                        type="button"
-                        className="message__icon-btn"
-                        onClick={() => onReplay(item)}
-                        title="Replay answer"
-                      >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M5 12a7 7 0 1 1 2 5" strokeLinecap="round" />
-                          <path d="M5 12V7M5 12h5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        className="message__icon-btn"
-                        onClick={() => navigator.clipboard?.writeText(item.answer)}
-                        title="Copy answer"
-                      >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="9" y="9" width="11" height="11" rx="2" />
-                          <path d="M5 15V5a2 2 0 0 1 2-2h10" />
-                        </svg>
-                      </button>
-                    </div>
+                    {item.answer !== null && (
+                      <div className="message__actions">
+                        <button
+                          type="button"
+                          className="message__icon-btn"
+                          onClick={() => onReplay(item)}
+                          title="Replay answer"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M5 12a7 7 0 1 1 2 5" strokeLinecap="round" />
+                            <path d="M5 12V7M5 12h5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          className="message__icon-btn"
+                          onClick={() => navigator.clipboard?.writeText(item.answer)}
+                          title="Copy answer"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="9" y="9" width="11" height="11" rx="2" />
+                            <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  {isLastAssistant && isSpeaking ? (
+                  {item.answer === null ? (
+                    <div className="typing-dots" aria-label="Thinking">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  ) : isLastAssistant && isSpeaking ? (
                     <>
                       <Waveform bars={ttsBars} className="waveform--assistant" />
                       <Transcript text={item.answer} progress={progress} onSeek={onSeek} />

@@ -31,13 +31,21 @@ export default function VoicePanel({ voice, onVoiceChange, theme, onThemeChange 
               key={t.id}
               type="button"
               className={`swatch ${theme === t.id ? "is-active" : ""}`}
-              style={{ background: t.accent }}
+              style={{
+                background: `conic-gradient(${t.bg} 0deg 180deg, ${t.accent} 180deg 360deg)`,
+                borderColor: theme === t.id ? "var(--text)" : t.border,
+              }}
               onClick={() => onThemeChange(t.id)}
               title={t.label}
               aria-label={`Theme: ${t.label}`}
             >
               {theme === t.id && (
-                <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={t.dark ? "#ffffff" : "#111111"}
+                  strokeWidth="3"
+                >
                   <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               )}

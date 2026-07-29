@@ -37,7 +37,9 @@ QDRANT_PATH = "qdrant_db"
 QDRANT_COLLECTION_NAME = "vectorDB"
 
 EMBEDDING_DIM = 1024
-MAX_NEW_TOKENS = 300
+# Answers here are meant to be spoken back (TTS), not read as long-form text —
+# shorter caps keep both generation time and playback length reasonable.
+MAX_NEW_TOKENS = 160
 
 MAX_CONCURRENT_GENERATIONS = int(os.environ.get("MAX_CONCURRENT_GENERATIONS", os.cpu_count() or 2))
 QUERY_CACHE_TTL_SECONDS = int(os.environ.get("QUERY_CACHE_TTL_SECONDS", 600))

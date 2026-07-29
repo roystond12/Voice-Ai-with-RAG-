@@ -3,7 +3,7 @@
 
 export const APP_NAME = "Voice AI";
 export const TAGLINE = "Ask with your voice. Listen to the answer.";
-export const GREETING_NAME = "there";
+export const GREETING_NAME = "Deepsu";
 
 // Session-only conversation cap (how many separate conversations the sidebar
 // keeps). No backend persistence exists across sessions yet — this is a
@@ -47,12 +47,106 @@ export const VOICE_OPTIONS = [
 ];
 export const DEFAULT_VOICE = VOICE_OPTIONS[0].id;
 
-// Each swaps the accent color CSS variables at runtime (see theme.css / App.jsx).
-// A restrained, professional palette — no neon/saturated colors.
+// Each theme is a full palette (surfaces + text + accent), swapped at
+// runtime as CSS variables (see theme.css / App.jsx) — not just an accent
+// color layered on one fixed background. "White" and "Black" are true
+// neutral themes; the rest tint their surfaces to match their accent hue.
 export const THEME_OPTIONS = [
-  { id: "indigo", label: "Indigo", accent: "#6366f1", accentBright: "#818cf8", accentDim: "#33366b" },
-  { id: "emerald", label: "Emerald", accent: "#10b981", accentBright: "#34d399", accentDim: "#0b5c47" },
-  { id: "sky", label: "Sky", accent: "#0ea5e9", accentBright: "#38bdf8", accentDim: "#0a5578" },
-  { id: "amber", label: "Amber", accent: "#f59e0b", accentBright: "#fbbf24", accentDim: "#7a4d06" },
+  {
+    id: "white",
+    label: "White",
+    dark: false,
+    bg: "#f5f6fa",
+    bgElevated: "#ffffff",
+    panel: "#ffffff",
+    panelHover: "#f0f1f7",
+    border: "#e2e4ec",
+    accent: "#6366f1",
+    accentBright: "#4f46e5",
+    accentDim: "#e0e1fb",
+    text: "#1a1c26",
+    textDim: "#5c5f70",
+    textFaint: "#8b8ea1",
+  },
+  {
+    id: "black",
+    label: "Black",
+    dark: true,
+    bg: "#0a0a0f",
+    bgElevated: "#101117",
+    panel: "#15161e",
+    panelHover: "#1c1e28",
+    border: "#262832",
+    accent: "#818cf8",
+    accentBright: "#a5b4fc",
+    accentDim: "#33366b",
+    text: "#eceef2",
+    textDim: "#9a9dab",
+    textFaint: "#64677a",
+  },
+  {
+    id: "indigo",
+    label: "Indigo",
+    dark: false,
+    bg: "#f2f2fc",
+    bgElevated: "#ffffff",
+    panel: "#ffffff",
+    panelHover: "#ececfb",
+    border: "#dedef5",
+    accent: "#6366f1",
+    accentBright: "#4f46e5",
+    accentDim: "#e0e1fb",
+    text: "#1e1b3a",
+    textDim: "#5b5780",
+    textFaint: "#8d89ab",
+  },
+  {
+    id: "emerald",
+    label: "Emerald",
+    dark: false,
+    bg: "#f1faf6",
+    bgElevated: "#ffffff",
+    panel: "#ffffff",
+    panelHover: "#e8f6f0",
+    border: "#d7ede3",
+    accent: "#10b981",
+    accentBright: "#059669",
+    accentDim: "#d7f5ea",
+    text: "#0f2e24",
+    textDim: "#4f6d61",
+    textFaint: "#83a396",
+  },
+  {
+    id: "sky",
+    label: "Sky",
+    dark: false,
+    bg: "#f0f8fd",
+    bgElevated: "#ffffff",
+    panel: "#ffffff",
+    panelHover: "#e6f3fb",
+    border: "#d3e9f5",
+    accent: "#0ea5e9",
+    accentBright: "#0284c7",
+    accentDim: "#d7f0fb",
+    text: "#0d2733",
+    textDim: "#4b6b78",
+    textFaint: "#7fa0ad",
+  },
+  {
+    id: "amber",
+    label: "Amber",
+    dark: false,
+    bg: "#fdf9f0",
+    bgElevated: "#ffffff",
+    panel: "#ffffff",
+    panelHover: "#fbf2df",
+    border: "#f0e2c2",
+    accent: "#f59e0b",
+    accentBright: "#d97706",
+    accentDim: "#fbecd0",
+    text: "#332405",
+    textDim: "#6b5730",
+    textFaint: "#a08a5e",
+  },
 ];
-export const DEFAULT_THEME = THEME_OPTIONS[0].id;
+export const DEFAULT_THEME = "white";

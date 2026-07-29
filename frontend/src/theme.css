@@ -3,21 +3,21 @@
    theme swatches in VoicePanel.jsx (see THEME_OPTIONS in config.js) — change
    the *default* look by editing these, or add a new swatch in config.js. */
 :root {
-  --bg: #0a0a0f;
-  --bg-elevated: #101117;
-  --panel: #15161e;
-  --panel-hover: #1c1e28;
-  --border: #262832;
+  --bg: #f5f6fa;
+  --bg-elevated: #ffffff;
+  --panel: #ffffff;
+  --panel-hover: #f0f1f7;
+  --border: #e2e4ec;
 
   --accent: #6366f1;
-  --accent-bright: #818cf8;
-  --accent-dim: #33366b;
+  --accent-bright: #4f46e5;
+  --accent-dim: #e0e1fb;
 
-  --text: #eceef2;
-  --text-dim: #9a9dab;
-  --text-faint: #64677a;
+  --text: #1a1c26;
+  --text-dim: #5c5f70;
+  --text-faint: #8b8ea1;
 
-  --danger: #ef4444;
+  --danger: #dc2626;
 
   --radius-lg: 18px;
   --radius-md: 12px;

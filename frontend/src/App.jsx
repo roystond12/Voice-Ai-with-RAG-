@@ -18,12 +18,26 @@ import {
 import "./theme.css";
 import "./app.css";
 
+const THEME_CSS_VARS = {
+  bg: "--bg",
+  bgElevated: "--bg-elevated",
+  panel: "--panel",
+  panelHover: "--panel-hover",
+  border: "--border",
+  accent: "--accent",
+  accentBright: "--accent-bright",
+  accentDim: "--accent-dim",
+  text: "--text",
+  textDim: "--text-dim",
+  textFaint: "--text-faint",
+};
+
 function applyTheme(themeId) {
   const theme = THEME_OPTIONS.find((t) => t.id === themeId) || THEME_OPTIONS[0];
   const root = document.documentElement;
-  root.style.setProperty("--accent", theme.accent);
-  root.style.setProperty("--accent-bright", theme.accentBright);
-  root.style.setProperty("--accent-dim", theme.accentDim);
+  for (const [key, cssVar] of Object.entries(THEME_CSS_VARS)) {
+    root.style.setProperty(cssVar, theme[key]);
+  }
 }
 
 function makeConversation() {
@@ -89,19 +103,36 @@ function App() {
   const runQuery = async (query) => {
     if (!query.trim() || isBusy) return;
     const convId = ensureActiveConversation();
+    const trimmedQuery = query.trim();
+    const messageId = crypto.randomUUID();
     setIsBusy(true);
     setInputValue("");
     setStatusText("Thinking...");
+
+    // Show the question right away with a pending (answer: null) turn — the
+    // ConversationCard renders that as a "thinking" bubble in-place — so the
+    // user always sees confirmation their question landed, not just a
+    // status pill, while the answer is generated.
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.id === convId
+          ? {
+              ...c,
+              title: c.messages.length === 0 ? trimmedQuery.slice(0, 48) : c.title,
+              messages: [...c.messages, { id: messageId, query: trimmedQuery, answer: null }],
+            }
+          : c
+      )
+    );
+
     try {
-      const answer = await getContext(query.trim());
-      const messageId = crypto.randomUUID();
+      const answer = await getContext(trimmedQuery);
       setConversations((prev) =>
         prev.map((c) =>
           c.id === convId
             ? {
                 ...c,
-                title: c.messages.length === 0 ? query.trim().slice(0, 48) : c.title,
-                messages: [...c.messages, { id: messageId, query: query.trim(), answer }],
+                messages: c.messages.map((m) => (m.id === messageId ? { ...m, answer } : m)),
               }
             : c
         )
@@ -112,7 +143,22 @@ function App() {
       await play(audioBlob);
       setStatusText("");
     } catch (err) {
-      setStatusText(err.message || "Something went wrong.");
+      const message = err.message || "Something went wrong.";
+      setStatusText(message);
+      // Resolve the pending bubble so it doesn't sit there "thinking"
+      // forever if the request failed.
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === convId
+            ? {
+                ...c,
+                messages: c.messages.map((m) =>
+                  m.id === messageId && m.answer === null ? { ...m, answer: `⚠️ ${message}` } : m
+                ),
+              }
+            : c
+        )
+      );
     } finally {
       setIsBusy(false);
     }
