@@ -11,6 +11,11 @@ __pycache__/
 qdrant_db/
 qdrant_db1/
 chroma_db/
+chroma.log
+
+# ONNX model exports (regenerate with conversion/ scripts — large binaries)
+onnx_generation_output/
+onnx_reranker_output/
 
 # node / frontend
 frontend/node_modules/

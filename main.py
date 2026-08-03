@@ -11,19 +11,14 @@ from rag import rag_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
-# Make sure CPU inference (generation/embedding/rerank models) actually uses
-# every core available on this box, rather than whatever conservative
-# default torch picked up.
 if not torch.cuda.is_available():
     torch.set_num_threads(os.cpu_count() or 1)
 
 app = FastAPI()
 
-# The React frontend calls this API directly from the browser (unlike the
-# old Streamlit UI, which called it server-side), so CORS has to be enabled.
 allowed_origins = [
     origin.strip()
-    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:4174").split(",")
+    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:4173").split(",")
     if origin.strip()
 ]
 app.add_middleware(

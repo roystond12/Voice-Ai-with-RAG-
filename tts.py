@@ -34,6 +34,7 @@ config = {
     "host":os.environ.get("HOST","0.0.0.0")
 }
 deepgram_api_key:str = validate_api_key()
+
 models_list = [
     "aura-2-thalia-en",
     "aura-2-asteria-en",

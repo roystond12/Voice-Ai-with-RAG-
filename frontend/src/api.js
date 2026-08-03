@@ -12,7 +12,12 @@ async function readErrorDetail(res) {
   }
 }
 
-export async function getContext(query) {
+// The backend now streams the answer as plain-text chunks as the model
+// generates them (rather than one buffered JSON string), so the caller can
+// render/speak-prep it incrementally. `onChunk(chunkText, fullTextSoFar)` is
+// called as each piece arrives; the full answer is also the return value
+// once the stream ends, for callers that just want the final text.
+export async function getContext(query, onChunk) {
   const url = new URL(`${API_BASE_URL}/api/get_context`);
   url.searchParams.set("query", query);
   // GET can't carry a body in the Fetch API, so the query goes in the
@@ -21,7 +26,26 @@ export async function getContext(query) {
   if (!res.ok) {
     throw new Error(`get_context failed: ${await readErrorDetail(res)}`);
   }
-  return res.json();
+
+  if (!res.body) {
+    // Fallback for environments without a readable stream body.
+    const text = await res.text();
+    onChunk?.(text, text);
+    return text;
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let full = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value, { stream: true });
+    if (!chunk) continue;
+    full += chunk;
+    onChunk?.(chunk, full);
+  }
+  return full;
 }
 
 export async function textToSpeech(text, voice) {

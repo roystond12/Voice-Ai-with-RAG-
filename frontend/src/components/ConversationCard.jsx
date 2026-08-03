@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import Waveform from "./Waveform";
 import Transcript from "./Transcript";
 import TalkingFace from "./TalkingFace";
+import ThinkingIndicator from "./ThinkingIndicator";
 
 const STATUS_LABEL = {
   idle: "Idle",
@@ -106,11 +107,7 @@ export default function ConversationCard({
                   </div>
 
                   {item.answer === null ? (
-                    <div className="typing-dots" aria-label="Thinking">
-                      <span />
-                      <span />
-                      <span />
-                    </div>
+                    <ThinkingIndicator query={item.query} />
                   ) : isLastAssistant && isSpeaking ? (
                     <>
                       <Waveform bars={ttsBars} className="waveform--assistant" />

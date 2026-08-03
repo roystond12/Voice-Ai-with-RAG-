@@ -126,17 +126,25 @@ function App() {
     );
 
     try {
-      const answer = await getContext(trimmedQuery);
-      setConversations((prev) =>
-        prev.map((c) =>
-          c.id === convId
-            ? {
-                ...c,
-                messages: c.messages.map((m) => (m.id === messageId ? { ...m, answer } : m)),
-              }
-            : c
-        )
-      );
+      // getContext streams the answer in as the model generates it — update
+      // the pending message on every chunk so the text grows live in the
+      // conversation instead of appearing all at once at the end. The first
+      // chunk also flips the bubble from "thinking dots" to real text,
+      // since ConversationCard treats answer === null as the pending state.
+      const answer = await getContext(trimmedQuery, (_chunk, fullSoFar) => {
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === convId
+              ? {
+                  ...c,
+                  messages: c.messages.map((m) =>
+                    m.id === messageId ? { ...m, answer: fullSoFar } : m
+                  ),
+                }
+              : c
+          )
+        );
+      });
 
       setStatusText("Speaking...");
       const audioBlob = await textToSpeech(answer, voice);

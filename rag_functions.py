@@ -1,24 +1,40 @@
 import json
+import logging
+import threading
+
 import torch
-from transformers import AutoTokenizer,AutoModelForCausalLM
+from transformers import AutoTokenizer, TextIteratorStreamer
 import config
-from sentence_transformers import SentenceTransformer, CrossEncoder
+from sentence_transformers import SentenceTransformer
 import chromadb
 from chromadb.api.models.Collection import Collection
 
+import transformers.utils as _tf_utils
+if not hasattr(_tf_utils, "is_offline_mode"):
+    from huggingface_hub import is_offline_mode as _is_offline_mode
+    _tf_utils.is_offline_mode = _is_offline_mode
+
+from optimum.onnxruntime import ORTModelForSequenceClassification, ORTModelForCausalLM
+
+logger = logging.getLogger(__name__)
+
+
 def get_generation_model():
-    # Tried dynamic int8 quantization here for CPU speedup — measured no
-    # real latency win on this model/box, and it degraded output quality
-    # badly (generation collapsed into repeating an unrelated template
-    # phrase instead of answering). Not worth the risk; reverted.
-    tokenizer = AutoTokenizer.from_pretrained(config.GENERATION_MODEL)
-    model = AutoModelForCausalLM.from_pretrained(config.GENERATION_MODEL)
+    """Loads the ONNX-exported generation model + its tokenizer."""
+    tokenizer = AutoTokenizer.from_pretrained(config.GENERATION_SAVE_DIR)
+    model = ORTModelForCausalLM.from_pretrained(config.GENERATION_SAVE_DIR, provider="CPUExecutionProvider")
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device)
-    model.eval()
     return tokenizer, model
 
+
+def get_streamer(tokenizer: AutoTokenizer, skip_prompt, skip_special_tokens):
+    """Builds a token streamer for incremental generation output."""
+    return TextIteratorStreamer(tokenizer=tokenizer, skip_prompt=skip_prompt, skip_special_tokens=skip_special_tokens)
+
+
 def chunk_to_text(chunk: dict) -> str:
+    """Renders one retrieved chunk dict into plain text for the LLM/reranker."""
     parts = []
 
     title = chunk.get("title")
@@ -45,46 +61,64 @@ def chunk_to_text(chunk: dict) -> str:
 
     return "\n\n".join(parts)
 
-def generate_answer(query: str, chunks: list[dict], tokenizer, model) -> str:
+
+def _run_generation(model, generation_kwargs, streamer) -> None:
+    """Runs model.generate() in a background thread, always ending the
+    streamer so the consumer loop can't hang if generation fails."""
+    try:
+        model.generate(**generation_kwargs)
+    except Exception:
+        logger.exception("generation failed")
+    finally:
+        streamer.end()
+
+
+def generate_answer(query: str, chunks: list[dict], tokenizer, model):
+    """Generator: yields the answer incrementally as the model produces it,
+    instead of blocking until the full answer is ready."""
+    streamer = get_streamer(tokenizer, True, True)
     context = "\n\n".join(chunk_to_text(chunk) for chunk in chunks)
     messages = [
-        {"role": "system", "content":config.PROMPT},
+        {"role": "system", "content": config.PROMPT},
         {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {query}"},
     ]
     inputs = tokenizer.apply_chat_template(
         messages, add_generation_prompt=True, return_tensors="pt", return_dict=True
     ).to(model.device)
 
-    output_ids = model.generate(
+    generation_kwargs = dict(
         **inputs,
+        streamer=streamer,
         max_new_tokens=config.MAX_NEW_TOKENS,
         do_sample=False,
     )
-    generated = output_ids[0][inputs["input_ids"].shape[-1]:]
-    return tokenizer.decode(generated, skip_special_tokens=True).strip()
+
+    thread = threading.Thread(target=_run_generation, args=(model, generation_kwargs, streamer), daemon=True)
+    thread.start()
+
+    for text in streamer:
+        yield text
+
 
 def get_embedding_model() -> SentenceTransformer:
+    """Loads the embedding model used for both indexing and query retrieval."""
     return SentenceTransformer(config.EMBEDDING_MODEL_ID, trust_remote_code=True)
 
-def get_rerank_model() -> CrossEncoder:
-    # Note: dynamic-quantizing this model (like get_generation_model() does)
-    # breaks its forward pass — the BatchEncoding-based calling convention
-    # this BERT model uses doesn't survive being wrapped. Left unquantized;
-    # it's a much smaller model than the generation one and isn't the
-    # latency bottleneck.
-    return CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+
+def get_rerank_model():
+    """Loads the ONNX-exported reranker model + its tokenizer."""
+    tokenizer = AutoTokenizer.from_pretrained(config.RERANKED_SAVE_DIR)
+    model = ORTModelForSequenceClassification.from_pretrained(config.RERANKED_SAVE_DIR, provider="CPUExecutionProvider")
+    return tokenizer, model
+
 
 def get_chroma_client() -> chromadb.HttpClient:
-    """Connects to a Chroma *server* (see docker-compose.yml / `chroma run`),
-    never an embedded/local-mode client — that would only allow one process
-    to hold the store at a time, blocking multi-worker deployment."""
+    """Connects to the Chroma server (see docker-compose.yml / `chroma run`)."""
     return chromadb.HttpClient(host=config.CHROMA_HOST, port=config.CHROMA_PORT)
 
 
 def get_or_create_collection(client: chromadb.HttpClient) -> Collection:
-    """Never resets/deletes an existing collection implicitly — a prior bug
-    here wiped the vector store on every backend restart. Resets only ever
-    happen via an explicit, separate migration/ingestion script."""
+    """Gets (or creates) the collection without ever resetting existing data."""
     return client.get_or_create_collection(
         name=config.CHROMA_COLLECTION_NAME,
         metadata={"hnsw:space": "cosine"},
@@ -92,19 +126,22 @@ def get_or_create_collection(client: chromadb.HttpClient) -> Collection:
 
 
 def get_all_chunks(collection: Collection) -> list[dict]:
-    """Every chunk currently indexed in Chroma (the actual source of truth
-    for retrieve())."""
+    """Every chunk currently indexed in Chroma."""
     result = collection.get(include=["metadatas"])
     return [json.loads(metadata["chunk_json"]) for metadata in result["metadatas"]]
+
 
 def retrieve(
     query: str,
     embedding_model: SentenceTransformer,
-    re_rank_model: CrossEncoder,
+    re_rank_tokenizer,
+    re_rank_model,
     collection: Collection,
     top_k: int = config.TOP_K,
-    rerank_candidates: int = 6,
+    rerank_candidates: int = 4,
 ) -> list[tuple[float, dict]]:
+    """Vector-searches Chroma for candidate chunks, reranks them with the
+    cross-encoder, and returns the top_k (score, chunk) pairs."""
     query_vector = embedding_model.encode(config.PREFIX + query, normalize_embeddings=True).tolist()
     results = collection.query(
         query_embeddings=[query_vector],
@@ -117,7 +154,14 @@ def retrieve(
     pairs = [(query, chunk_to_text(payload)) for payload in payloads]
     if not pairs:
         return []
-    rerank_scores = re_rank_model.predict(pairs)
+
+    queries, passages = zip(*pairs)
+    inputs = re_rank_tokenizer(
+        list(queries), list(passages), padding=True, truncation=True, return_tensors="pt"
+    )
+    with torch.no_grad():
+        logits = re_rank_model(**inputs).logits
+    rerank_scores = logits.squeeze(-1).tolist()
 
     reranked = sorted(
         zip(rerank_scores, payloads),
@@ -125,4 +169,3 @@ def retrieve(
         reverse=True,
     )
     return reranked[:top_k]
-
